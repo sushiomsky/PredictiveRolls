@@ -55,6 +55,16 @@ currency = "BTC"
 strategy = "None"
 ```
 
+3. (Optional) Set up environment variables:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` to customize:
+- `CONFIG_PATH`: Path to your config file (default: `config.toml`)
+- `MODEL_DIR`: Directory containing trained model files
+- `RUST_LOG`: Logging level (`trace`, `debug`, `info`, `warn`, `error`)
+
 ### Available Strategies
 
 - `None`: No strategy (default)
@@ -69,15 +79,32 @@ Run the application:
 cargo run --release
 ```
 
+Or with custom environment variables:
+```bash
+export MODEL_DIR=/path/to/your/model
+export CONFIG_PATH=my_config.toml
+export RUST_LOG=debug
+cargo run --release
+```
+
 The application will:
 1. Load your configuration
 2. Initialize the neural network model
 3. Connect to the configured gambling site
 4. Start making predictions and placing bets
 
+### Logging
+
+The application uses `env_logger` for logging. Set the `RUST_LOG` environment variable to control verbosity:
+- `RUST_LOG=error` - Only errors
+- `RUST_LOG=warn` - Warnings and errors
+- `RUST_LOG=info` - Informational messages (default)
+- `RUST_LOG=debug` - Debug information
+- `RUST_LOG=trace` - Verbose trace information
+
 ## Training the Model
 
-Before running the main application, you need a trained model. The model files should be placed in the configured artifact directory (default: `/home/jvne/Projects/rust/random_guesser/experimental`).
+Before running the main application, you need a trained model. The model files should be placed in the configured artifact directory. You can specify the location using the `MODEL_DIR` environment variable.
 
 ## Development
 

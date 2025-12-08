@@ -11,8 +11,25 @@ pub enum BetError {
     EmptyReply,
     Failed,
     LoginFailed,
+    ConfigError(String),
+    ModelError(String),
     ReqwestError(reqwest::Error),
 }
+
+impl std::fmt::Display for BetError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BetError::EmptyReply => write!(f, "Received empty reply from server"),
+            BetError::Failed => write!(f, "Operation failed"),
+            BetError::LoginFailed => write!(f, "Login failed"),
+            BetError::ConfigError(msg) => write!(f, "Configuration error: {}", msg),
+            BetError::ModelError(msg) => write!(f, "Model error: {}", msg),
+            BetError::ReqwestError(e) => write!(f, "Network error: {}", e),
+        }
+    }
+}
+
+impl std::error::Error for BetError {}
 
 impl From<reqwest::Error> for BetError {
     fn from(value: reqwest::Error) -> Self {
