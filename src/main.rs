@@ -21,14 +21,11 @@ use log::{error, info, warn};
 use model::Model;
 use training::TrainingConfig;
 
+use crate::config::SiteConfig;
 #[allow(unused_imports)]
 use crate::sites::{crypto_games::CryptoGames, duck_dice::DuckDiceIo, free_bitco_in::FreeBitcoIn};
 use crate::sites::{BetError, BetResult, Site};
-use crate::config::SiteConfig;
-use crate::{
-    config::TomlConfig,
-    model::ModelConfig,
-};
+use crate::{config::TomlConfig, model::ModelConfig};
 
 struct Game<B: Backend> {
     confidence: f32,

@@ -190,8 +190,7 @@ impl Site for CryptoGames {
             .client
             .get(format!(
                 "https://api.crypto.games/v1/balance/{}/{}",
-                self.currency,
-                self.key
+                self.currency, self.key
             ))
             .send()
             .await?
@@ -223,8 +222,7 @@ impl Site for CryptoGames {
             .client
             .post(format!(
                 "https://api.crypto.games/v1/placebet/{}/{}",
-                self.currency,
-                self.key
+                self.currency, self.key
             ))
             .json(&Bet {
                 bet: self.current_bet as f64,

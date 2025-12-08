@@ -1,3 +1,8 @@
+//! Configuration management for the application.
+//!
+//! This module handles loading and validating configuration from TOML files,
+//! including site credentials and betting strategies.
+
 use crate::currency::Currency;
 use serde::Deserialize;
 

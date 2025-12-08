@@ -1,3 +1,8 @@
+//! Site integrations for various gambling platforms.
+//!
+//! This module contains implementations for different gambling sites,
+//! providing a unified interface through the `Site` trait.
+
 use async_trait::async_trait;
 
 pub mod crypto_games;

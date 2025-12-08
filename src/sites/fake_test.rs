@@ -11,8 +11,7 @@ lazy_static! {
         Mutex::new(FakeServerStorage::default());
 }
 
-#[derive(Debug)]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct FakeServerStorage {
     pub server_seed_hash_previous_roll: String,
     pub server_seed_hash_next_roll: String,
