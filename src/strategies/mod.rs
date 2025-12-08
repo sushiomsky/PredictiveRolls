@@ -1,3 +1,8 @@
+//! Betting strategies for managing risk and bet sizing.
+//!
+//! This module contains various betting strategies that can be used to
+//! determine bet amounts and multipliers based on predictions and confidence.
+
 pub mod ai_fight;
 pub mod blaks_runner;
 pub mod my_strategy;

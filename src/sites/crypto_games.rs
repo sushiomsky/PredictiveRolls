@@ -49,26 +49,27 @@ impl Currency {
     }
 }
 
-impl ToString for Currency {
-    fn to_string(&self) -> String {
-        match self {
-            Self::BTC => "BTC".to_string(),
-            Self::ETH => "ETH".to_string(),
-            Self::USDT => "USDT".to_string(),
-            Self::XRP => "XRP".to_string(),
-            Self::BNB => "BNB".to_string(),
-            Self::SOL => "SOL".to_string(),
-            Self::USDC => "USDC".to_string(),
-            Self::DOGE => "DOGE".to_string(),
-            Self::SHIB => "SHIB".to_string(),
-            Self::LTC => "LTC".to_string(),
-            Self::BCH => "BCH".to_string(),
-            Self::PEPE => "PEPE".to_string(),
-            Self::ETC => "ETC".to_string(),
-            Self::POL => "POL".to_string(),
-            Self::GAS => "GAS".to_string(),
-            Self::PLAY => "PLAY".to_string(),
-        }
+impl std::fmt::Display for Currency {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let currency_str = match self {
+            Self::BTC => "BTC",
+            Self::ETH => "ETH",
+            Self::USDT => "USDT",
+            Self::XRP => "XRP",
+            Self::BNB => "BNB",
+            Self::SOL => "SOL",
+            Self::USDC => "USDC",
+            Self::DOGE => "DOGE",
+            Self::SHIB => "SHIB",
+            Self::LTC => "LTC",
+            Self::BCH => "BCH",
+            Self::PEPE => "PEPE",
+            Self::ETC => "ETC",
+            Self::POL => "POL",
+            Self::GAS => "GAS",
+            Self::PLAY => "PLAY",
+        };
+        write!(f, "{}", currency_str)
     }
 }
 
@@ -189,8 +190,7 @@ impl Site for CryptoGames {
             .client
             .get(format!(
                 "https://api.crypto.games/v1/balance/{}/{}",
-                self.currency.to_string(),
-                self.key
+                self.currency, self.key
             ))
             .send()
             .await?
@@ -222,8 +222,7 @@ impl Site for CryptoGames {
             .client
             .post(format!(
                 "https://api.crypto.games/v1/placebet/{}/{}",
-                self.currency.to_string(),
-                self.key
+                self.currency, self.key
             ))
             .json(&Bet {
                 bet: self.current_bet as f64,

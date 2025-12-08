@@ -12,28 +12,20 @@ pub mod training;
 pub mod util;
 
 use burn::{
-    backend::{
-        wgpu::{Wgpu, WgpuDevice},
-        Vulkan,
-    },
+    backend::{wgpu::WgpuDevice, Vulkan},
     prelude::*,
-    record::{CompactRecorder, FullPrecisionSettings, NamedMpkFileRecorder, Recorder},
-    tensor::activation::{sigmoid, softmax},
+    record::{CompactRecorder, Recorder},
 };
 use colored::Colorize;
+use log::{error, info, warn};
 use model::Model;
-use serde::Deserialize;
-use sha2::{Digest, Sha256};
 use training::TrainingConfig;
 
+use crate::config::SiteConfig;
 #[allow(unused_imports)]
 use crate::sites::{crypto_games::CryptoGames, duck_dice::DuckDiceIo, free_bitco_in::FreeBitcoIn};
-use crate::sites::{BetError, BetResult, Site, SiteCurrency};
-use crate::{config::SiteConfig, currency::Currency};
-use crate::{
-    config::{CryptoGamesConfig, DuckDiceConfig, FreeBitcoInConfig, TomlConfig, TomlStrategies},
-    model::ModelConfig,
-};
+use crate::sites::{BetError, BetResult, Site};
+use crate::{config::TomlConfig, model::ModelConfig};
 
 struct Game<B: Backend> {
     confidence: f32,
@@ -196,33 +188,67 @@ impl<B: Backend> Game<B> {
 
 #[tokio::main]
 async fn main() -> Result<(), BetError> {
-    let config_contents = tokio::fs::read_to_string("config.toml")
-        .await
-        .expect("config.toml not found.");
-    let game_config: TomlConfig =
-        toml::from_str(&config_contents).expect("Unable to read config.toml");
+    // Initialize logger
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
-    let site = if game_config.duck_dice.enabled {
+    info!("Starting PredictiveRolls application");
+
+    // Read configuration
+    let config_path = std::env::var("CONFIG_PATH").unwrap_or_else(|_| "config.toml".to_string());
+    info!("Loading configuration from: {}", config_path);
+
+    let config_contents = tokio::fs::read_to_string(&config_path).await.map_err(|e| {
+        error!("Failed to read config file {}: {}", config_path, e);
+        BetError::Failed
+    })?;
+
+    let game_config: TomlConfig = toml::from_str(&config_contents).map_err(|e| {
+        error!("Failed to parse config.toml: {}", e);
+        BetError::ConfigError(format!("Parse error: {}", e))
+    })?;
+
+    // Validate configuration
+    game_config.validate().map_err(|e| {
+        error!("Configuration validation failed: {}", e);
+        BetError::ConfigError(e)
+    })?;
+
+    info!("Configuration validated successfully");
+
+    let _site = if game_config.duck_dice.enabled {
+        info!("Using DuckDice site");
         DuckDiceIo::default()
             .with_api_key(game_config.duck_dice.api_key.clone())
             .with_currency(game_config.duck_dice.currency.clone())
             .with_strategy(game_config.duck_dice.strategy)
     } else {
-        unimplemented!("TODO: Add more sites");
+        warn!("No site enabled in configuration");
+        return Err(BetError::Failed);
     };
 
     type MyBackend = Vulkan<f32, i32>;
 
+    info!("Initializing GPU device");
     let device = WgpuDevice::default();
-    let artifact_dir = "/home/jvne/Projects/rust/random_guesser/experimental";
 
-    let config = TrainingConfig::load(format!("{artifact_dir}/config.json"))
-        .expect("Config should exist for the model; run train first.");
+    // Get model artifact directory from environment or use default
+    let artifact_dir = std::env::var("MODEL_DIR")
+        .unwrap_or_else(|_| "/home/jvne/Projects/rust/random_guesser/experimental".to_string());
+    info!("Loading model from: {}", artifact_dir);
+
+    let _config = TrainingConfig::load(format!("{artifact_dir}/config.json")).map_err(|e| {
+        error!("Failed to load model config: {}", e);
+        BetError::Failed
+    })?;
 
     let record = CompactRecorder::new()
         .load(format!("{artifact_dir}/model").into(), &device)
-        .expect("Trained model should exist; run train first.");
+        .map_err(|e| {
+            error!("Failed to load trained model: {}", e);
+            BetError::Failed
+        })?;
 
+    info!("Model loaded successfully");
     let model = ModelConfig::new().init(&device).load_record(record);
 
     let mut game = Game::<MyBackend> {
@@ -233,10 +259,19 @@ async fn main() -> Result<(), BetError> {
         prediction: 0.,
         initialized: false,
     };
+
+    info!("Logging into site");
     game.site.login().await?;
+    info!("Login successful, starting betting loop");
 
     loop {
-        game.bet().await?;
+        match game.bet().await {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Bet failed: {:?}", e);
+                return Err(e);
+            }
+        }
 
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }

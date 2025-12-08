@@ -48,7 +48,7 @@ pub struct BetResultCsvRecord {
 /// Returns: (rolled_number, server_seed, nonce)
 pub fn gen_fake_bet(
     server_storage: &mut FakeServerStorage,
-    client_seed: &str,
+    _client_seed: &str,
     nonce: u64,
 ) -> (u32, String, String, u64) {
     let sys_random = SystemRandom::new();
@@ -60,9 +60,11 @@ pub fn gen_fake_bet(
     let result = hasher.finalize();
     let server_seed_hash = hex::encode(result);
 
-    let client_seed: String = rand::thread_rng()
+    let mut rng = rand::rng();
+    let client_seed_len = rng.random_range(0..64);
+    let client_seed: String = rand::rng()
         .sample_iter(rand::distr::Alphanumeric)
-        .take(rand::thread_rng().gen_range(0..64))
+        .take(client_seed_len)
         .map(char::from)
         .collect();
 

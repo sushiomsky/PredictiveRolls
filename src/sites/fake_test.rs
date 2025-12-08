@@ -1,7 +1,5 @@
 use lazy_static::lazy_static;
 use rand::Rng;
-use ring::hmac;
-use ring::rand::{SecureRandom, SystemRandom};
 use sha2::{Digest, Sha256, Sha512};
 use std::sync::Mutex;
 
@@ -13,7 +11,7 @@ lazy_static! {
         Mutex::new(FakeServerStorage::default());
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct FakeServerStorage {
     pub server_seed_hash_previous_roll: String,
     pub server_seed_hash_next_roll: String,
@@ -28,26 +26,6 @@ pub struct FakeServerStorage {
     pub initialized: bool,
     pub client_seed: String,
     pub server_seed: String,
-}
-
-impl Default for FakeServerStorage {
-    fn default() -> Self {
-        Self {
-            server_seed_hash_previous_roll: String::new(),
-            server_seed_hash_next_roll: String::new(),
-            server_seed_previous_roll: 0,
-            previous_nonce: 0,
-            current_nonce: 0,
-            next_nonce: 0,
-            current_seed_hash: String::new(),
-            previous_roll: 0,
-            current_roll: 0,
-            next_roll: 0,
-            initialized: false,
-            client_seed: String::new(),
-            server_seed: String::new(),
-        }
-    }
 }
 
 /// Returns: (rolled_number, server_seed, nonce)

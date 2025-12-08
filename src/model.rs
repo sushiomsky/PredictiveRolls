@@ -1,7 +1,19 @@
+//! Neural network model for predicting dice rolls.
+//!
+//! This module contains the transformer-based model architecture that processes
+//! hash sequences to predict dice roll outcomes.
+
 use burn::{prelude::*, tensor::Distribution};
 
 use crate::data::BetBatch;
 
+/// The main neural network model for dice roll prediction.
+///
+/// This model uses a combination of:
+/// - Convolutional layers for initial feature extraction
+/// - Positional encoding for sequence awareness
+/// - Transformer encoder/decoder for pattern recognition
+/// - LSTM layers for temporal modeling
 #[derive(Module, Debug)]
 pub struct Model<B: Backend> {
     input_layer: nn::conv::Conv2d<B>,
@@ -13,6 +25,7 @@ pub struct Model<B: Backend> {
     output_layer: nn::Linear<B>,
 }
 
+/// Configuration for the model.
 #[derive(Config)]
 pub struct ModelConfig {}
 
