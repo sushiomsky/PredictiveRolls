@@ -1,0 +1,5 @@
+# Clippy configuration for better code quality
+# Warn on common issues
+too-many-arguments-threshold = 8
+type-complexity-threshold = 500
+single-char-binding-names-threshold = 4
