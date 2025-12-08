@@ -207,8 +207,16 @@ async fn main() -> Result<(), BetError> {
 
     let game_config: TomlConfig = toml::from_str(&config_contents).map_err(|e| {
         error!("Failed to parse config.toml: {}", e);
-        BetError::Failed
+        BetError::ConfigError(format!("Parse error: {}", e))
     })?;
+
+    // Validate configuration
+    game_config.validate().map_err(|e| {
+        error!("Configuration validation failed: {}", e);
+        BetError::ConfigError(e)
+    })?;
+
+    info!("Configuration validated successfully");
 
     let _site = if game_config.duck_dice.enabled {
         info!("Using DuckDice site");
