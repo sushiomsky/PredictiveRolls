@@ -43,35 +43,35 @@ pub struct TomlConfig {
 }
 
 pub trait SiteConfig {
-    fn with_api_key(mut self, api_key: String) -> Self
+    fn with_api_key(self, _api_key: String) -> Self
     where
         Self: Sized,
     {
         self
     }
 
-    fn with_username(mut self) -> Self
+    fn with_username(self) -> Self
     where
         Self: Sized,
     {
         self
     }
 
-    fn with_password(mut self) -> Self
+    fn with_password(self) -> Self
     where
         Self: Sized,
     {
         self
     }
 
-    fn with_currency(mut self, currency: Currency) -> Self
+    fn with_currency(self, _currency: Currency) -> Self
     where
         Self: Sized,
     {
         self
     }
 
-    fn with_strategy(mut self, strategy: TomlStrategies) -> Self
+    fn with_strategy(self, _strategy: TomlStrategies) -> Self
     where
         Self: Sized,
     {

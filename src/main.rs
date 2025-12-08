@@ -13,25 +13,22 @@ pub mod util;
 
 use burn::{
     backend::{
-        wgpu::{Wgpu, WgpuDevice},
+        wgpu::WgpuDevice,
         Vulkan,
     },
     prelude::*,
-    record::{CompactRecorder, FullPrecisionSettings, NamedMpkFileRecorder, Recorder},
-    tensor::activation::{sigmoid, softmax},
+    record::{CompactRecorder, Recorder},
 };
 use colored::Colorize;
 use model::Model;
-use serde::Deserialize;
-use sha2::{Digest, Sha256};
 use training::TrainingConfig;
 
 #[allow(unused_imports)]
 use crate::sites::{crypto_games::CryptoGames, duck_dice::DuckDiceIo, free_bitco_in::FreeBitcoIn};
-use crate::sites::{BetError, BetResult, Site, SiteCurrency};
-use crate::{config::SiteConfig, currency::Currency};
+use crate::sites::{BetError, BetResult, Site};
+use crate::config::SiteConfig;
 use crate::{
-    config::{CryptoGamesConfig, DuckDiceConfig, FreeBitcoInConfig, TomlConfig, TomlStrategies},
+    config::TomlConfig,
     model::ModelConfig,
 };
 
@@ -202,7 +199,7 @@ async fn main() -> Result<(), BetError> {
     let game_config: TomlConfig =
         toml::from_str(&config_contents).expect("Unable to read config.toml");
 
-    let site = if game_config.duck_dice.enabled {
+    let _site = if game_config.duck_dice.enabled {
         DuckDiceIo::default()
             .with_api_key(game_config.duck_dice.api_key.clone())
             .with_currency(game_config.duck_dice.currency.clone())
@@ -216,7 +213,7 @@ async fn main() -> Result<(), BetError> {
     let device = WgpuDevice::default();
     let artifact_dir = "/home/jvne/Projects/rust/random_guesser/experimental";
 
-    let config = TrainingConfig::load(format!("{artifact_dir}/config.json"))
+    let _config = TrainingConfig::load(format!("{artifact_dir}/config.json"))
         .expect("Config should exist for the model; run train first.");
 
     let record = CompactRecorder::new()

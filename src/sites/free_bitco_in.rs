@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use rand::{thread_rng, Rng};
+use rand::Rng;
 use reqwest::{cookie::Jar, Url};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -202,9 +202,9 @@ impl Site for FreeBitcoIn {
             .collect::<Vec<char>>();
         let mut csrf_token = String::new();
         {
-            let mut rng = thread_rng();
+            let mut rng = rand::rng();
             for _ in 0..12 {
-                let rand_num = rng.gen_range(0..charset.len());
+                let rand_num = rng.random_range(0..charset.len());
                 csrf_token.push(charset[rand_num]);
             }
         }
@@ -285,7 +285,7 @@ impl Site for FreeBitcoIn {
         self.multiplier = next_bet_data.1;
         let high = next_bet_data.3;
         let mut chance = (55.) * (1. - ((prediction - 5000.).abs() / 5000.));
-        chance = chance.max(0.01).min(50.);
+        chance = chance.clamp(0.01, 50.);
 
         let mut multiplier = 1. / (chance / 100.);
         multiplier = multiplier.clamp(1.01, 4750.);
@@ -328,9 +328,9 @@ impl Site for FreeBitcoIn {
                     ("multiplier", &format!("{:.2}", self.multiplier)),
                     ("csrf_token", &self.csrf_token.clone()),
                     ("rand", {
-                        let mut rng = thread_rng();
+                        let mut rng = rand::rng();
 
-                        &format!("{}", rng.gen::<f64>())
+                        &format!("{}", rng.random::<f64>())
                     }),
                 ],
             )
