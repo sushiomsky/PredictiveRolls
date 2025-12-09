@@ -13,6 +13,14 @@ android_logger = "0.13"
 lazy_static = "1.5.0"
 rand = "0.9"
 
+# HTTP Client for API requests
+reqwest = { version = "0.12", features = ["json", "cookies"] }
+# Async runtime
+tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
+# JSON serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
 # Re-use dependencies from the main project
 freebitco_in = { path = ".." }
 
