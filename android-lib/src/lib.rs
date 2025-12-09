@@ -110,6 +110,7 @@ pub extern "C" fn Java_com_predictiverolls_PredictiveRollsNative_configure(
     state.api_key = api_key_str;
     state.currency = currency_str;
     state.strategy = strategy_str;
+    state.use_faucet = true; // Default to faucet balance for safety
     
     // Initialize API client based on site
     if site_str == "duck_dice" || site_str == "duckdice" {
