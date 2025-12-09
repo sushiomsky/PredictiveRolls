@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PredictiveRolls</string>
+    <string name="settings">Settings</string>
+    <string name="api_key">API Key</string>
+    <string name="site_selection">Select Gambling Site</string>
+    <string name="start_betting">Start Betting</string>
+    <string name="stop_betting">Stop Betting</string>
+    <string name="prediction_label">Current Prediction:</string>
+    <string name="confidence_label">Confidence:</string>
+    <string name="balance_label">Balance:</string>
+    <string name="win_rate_label">Win Rate:</string>
+    <string name="strategy_label">Strategy:</string>
+    <string name="save_settings">Save Settings</string>
+    <string name="site_duck_dice">DuckDice</string>
+    <string name="site_crypto_games">CryptoGames</string>
+    <string name="site_free_bitco">FreeBitco.in</string>
+    <string name="strategy_none">None</string>
+    <string name="strategy_ai_fight">AI Fight</string>
+    <string name="strategy_blaks_runner">Blaks Runner</string>
+    <string name="strategy_my_strategy">My Strategy</string>
+    <string name="currency_label">Currency:</string>
+    <string name="disclaimer_title">Warning</string>
+    <string name="disclaimer_message">This application is for educational purposes only. Gambling involves significant risk. Never gamble with money you cannot afford to lose.</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+</resources>

@@ -27,3 +27,23 @@ rust-project.json
 # Application specific
 config.toml
 .env
+
+# Android
+android/app/build/
+android/app/.cxx/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/src/main/jniLibs/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Android Studio
+.idea/
+*.iml
+.gradle
+captures/
+.externalNativeBuild
+.cxx
