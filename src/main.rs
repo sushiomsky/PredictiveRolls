@@ -65,56 +65,23 @@ impl<B: Backend> Game<B> {
             let inputs_hash = history
                 .iter()
                 .flat_map(|itm| {
-                    let mut vals = itm
-                        .hash_next_roll
-                        .chars()
-                        .flat_map(|chr| {
-                            let value = chr.to_digit(16).unwrap_or(0);
-                            (0..4)
-                                .rev()
-                                .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-                        })
-                        .collect::<Vec<B::FloatElem>>();
+                    let mut vals = util::hex_string_to_binary_vec::<B>(&itm.hash_next_roll);
+                    vals.resize(util::HASH_NEXT_ROLL_SIZE, 0f32.elem::<B::FloatElem>());
 
-                    vals.resize(256, 0f32.elem::<B::FloatElem>());
+                    vals.append(&mut util::hex_string_to_binary_vec::<B>(
+                        &itm.hash_previous_roll,
+                    ));
+                    vals.resize(util::HASH_PREVIOUS_ROLL_SIZE, 0f32.elem::<B::FloatElem>());
 
-                    vals.append(
-                        &mut itm
-                            .hash_previous_roll
-                            .chars()
-                            .flat_map(|chr| {
-                                let value = chr.to_digit(16).unwrap_or(0);
-                                (0..4)
-                                    .rev()
-                                    .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-                            })
-                            .collect::<Vec<B::FloatElem>>(),
-                    );
-
-                    vals.resize(512, 0f32.elem::<B::FloatElem>());
-
-                    vals.append(
-                        &mut itm
-                            .client_seed
-                            .chars()
-                            .flat_map(|chr| {
-                                let value = chr.to_digit(16).unwrap_or(0);
-                                (0..4)
-                                    .rev()
-                                    .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-                            })
-                            .collect::<Vec<B::FloatElem>>(),
-                    );
-
-                    vals.resize(768, 0f32.elem::<B::FloatElem>());
+                    vals.append(&mut util::hex_string_to_binary_vec::<B>(&itm.client_seed));
+                    vals.resize(util::CLIENT_SEED_SIZE, 0f32.elem::<B::FloatElem>());
 
                     vals.append(
                         &mut (0..32)
                             .map(|i| ((itm.nonce >> i) & 1).elem::<B::FloatElem>())
                             .collect::<Vec<B::FloatElem>>(),
                     );
-
-                    vals.resize(1024, 0f32.elem::<B::FloatElem>());
+                    vals.resize(util::FINAL_FEATURE_SIZE, 0f32.elem::<B::FloatElem>());
 
                     vals
                 })
@@ -122,7 +89,12 @@ impl<B: Backend> Game<B> {
 
             let hash_data = TensorData::new(
                 inputs_hash,
-                [history.len() / history_size, history_size, 4, 256],
+                [
+                    history.len() / history_size,
+                    history_size,
+                    4,
+                    util::HASH_NEXT_ROLL_SIZE,
+                ],
             );
             let hash_data: Tensor<B, 4> =
                 Tensor::from(hash_data.convert::<B::FloatElem>()).to_device(&self.device);
@@ -215,12 +187,15 @@ async fn main() -> Result<(), BetError> {
 
     info!("Configuration validated successfully");
 
-    let _site = if game_config.duck_dice.enabled {
+    // Initialize the configured site
+    let site: Box<dyn Site> = if game_config.duck_dice.enabled {
         info!("Using DuckDice site");
-        DuckDiceIo::default()
-            .with_api_key(game_config.duck_dice.api_key.clone())
-            .with_currency(game_config.duck_dice.currency.clone())
-            .with_strategy(game_config.duck_dice.strategy)
+        Box::new(
+            DuckDiceIo::default()
+                .with_api_key(game_config.duck_dice.api_key.clone())
+                .with_currency(game_config.duck_dice.currency.clone())
+                .with_strategy(game_config.duck_dice.strategy),
+        )
     } else {
         warn!("No site enabled in configuration");
         return Err(BetError::Failed);
@@ -232,8 +207,7 @@ async fn main() -> Result<(), BetError> {
     let device = WgpuDevice::default();
 
     // Get model artifact directory from environment or use default
-    let artifact_dir = std::env::var("MODEL_DIR")
-        .unwrap_or_else(|_| "/home/jvne/Projects/rust/random_guesser/experimental".to_string());
+    let artifact_dir = std::env::var("MODEL_DIR").unwrap_or_else(|_| "./artifacts".to_string());
     info!("Loading model from: {}", artifact_dir);
 
     let _config = TrainingConfig::load(format!("{artifact_dir}/config.json")).map_err(|e| {
@@ -253,7 +227,7 @@ async fn main() -> Result<(), BetError> {
 
     let mut game = Game::<MyBackend> {
         confidence: 0.,
-        site: Box::new(DuckDiceIo::default()),
+        site,
         model,
         device,
         prediction: 0.,
