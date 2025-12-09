@@ -29,17 +29,23 @@ impl<B: Backend> Batcher<B, BetResultCsvRecord, BetBatch<B>> for BetBatcher<B> {
             .flat_map(|itm| {
                 let mut vals =
                     crate::util::hex_string_to_binary_vec::<B>(&itm.server_seed_hash_next_roll);
-                vals.resize(256, 0f32.elem::<B::FloatElem>());
+                vals.resize(
+                    crate::util::HASH_NEXT_ROLL_SIZE,
+                    0f32.elem::<B::FloatElem>(),
+                );
 
                 vals.append(&mut crate::util::hex_string_to_binary_vec::<B>(
                     &itm.server_seed_hash_previous_roll,
                 ));
-                vals.resize(512, 0f32.elem::<B::FloatElem>());
+                vals.resize(
+                    crate::util::HASH_PREVIOUS_ROLL_SIZE,
+                    0f32.elem::<B::FloatElem>(),
+                );
 
                 vals.append(&mut crate::util::hex_string_to_binary_vec::<B>(
                     &itm.client_seed,
                 ));
-                vals.resize(768, 0f32.elem::<B::FloatElem>());
+                vals.resize(crate::util::CLIENT_SEED_SIZE, 0f32.elem::<B::FloatElem>());
 
                 vals.append(
                     &mut (0..32)
@@ -47,7 +53,7 @@ impl<B: Backend> Batcher<B, BetResultCsvRecord, BetBatch<B>> for BetBatcher<B> {
                         .collect::<Vec<B::FloatElem>>(),
                 );
 
-                vals.resize(1024, 0f32.elem::<B::FloatElem>());
+                vals.resize(crate::util::FINAL_FEATURE_SIZE, 0f32.elem::<B::FloatElem>());
 
                 vals
             })

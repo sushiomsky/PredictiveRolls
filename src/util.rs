@@ -1,5 +1,15 @@
 use burn::prelude::*;
 
+// Feature dimension constants for tensor processing
+/// Size of the hash_next_roll feature vector
+pub const HASH_NEXT_ROLL_SIZE: usize = 256;
+/// Size after appending hash_previous_roll
+pub const HASH_PREVIOUS_ROLL_SIZE: usize = 512;
+/// Size after appending client_seed
+pub const CLIENT_SEED_SIZE: usize = 768;
+/// Final size after appending nonce
+pub const FINAL_FEATURE_SIZE: usize = 1024;
+
 /// Converts a hexadecimal string to a vector of binary values.
 ///
 /// Each hex character is converted to 4 bits, represented as individual elements.

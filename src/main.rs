@@ -66,22 +66,22 @@ impl<B: Backend> Game<B> {
                 .iter()
                 .flat_map(|itm| {
                     let mut vals = util::hex_string_to_binary_vec::<B>(&itm.hash_next_roll);
-                    vals.resize(256, 0f32.elem::<B::FloatElem>());
+                    vals.resize(util::HASH_NEXT_ROLL_SIZE, 0f32.elem::<B::FloatElem>());
 
                     vals.append(&mut util::hex_string_to_binary_vec::<B>(
                         &itm.hash_previous_roll,
                     ));
-                    vals.resize(512, 0f32.elem::<B::FloatElem>());
+                    vals.resize(util::HASH_PREVIOUS_ROLL_SIZE, 0f32.elem::<B::FloatElem>());
 
                     vals.append(&mut util::hex_string_to_binary_vec::<B>(&itm.client_seed));
-                    vals.resize(768, 0f32.elem::<B::FloatElem>());
+                    vals.resize(util::CLIENT_SEED_SIZE, 0f32.elem::<B::FloatElem>());
 
                     vals.append(
                         &mut (0..32)
                             .map(|i| ((itm.nonce >> i) & 1).elem::<B::FloatElem>())
                             .collect::<Vec<B::FloatElem>>(),
                     );
-                    vals.resize(1024, 0f32.elem::<B::FloatElem>());
+                    vals.resize(util::FINAL_FEATURE_SIZE, 0f32.elem::<B::FloatElem>());
 
                     vals
                 })
