@@ -104,8 +104,13 @@ pub extern "C" fn Java_com_predictiverolls_PredictiveRollsNative_getPrediction(
 ) -> jfloat {
     let mut state = STATE.lock().unwrap();
     
-    // Generate a pseudo-prediction for demonstration
-    // In a real implementation, this would call the ML model
+    // TODO: Integrate with the full Burn-based ML model from the main crate
+    // For now, generate a pseudo-prediction for demonstration purposes
+    // Real implementation should:
+    // 1. Load the trained model from MODEL_DIR
+    // 2. Prepare input data from historical rolls
+    // 3. Run inference through the neural network
+    // 4. Return the model's prediction
     state.prediction = 50.0 + (rand::random::<f32>() * 10.0 - 5.0);
     
     debug!("Generated prediction: {}", state.prediction);
@@ -119,6 +124,7 @@ pub extern "C" fn Java_com_predictiverolls_PredictiveRollsNative_getConfidence(
 ) -> jfloat {
     let mut state = STATE.lock().unwrap();
     
+    // TODO: Calculate actual confidence from ML model output
     // Generate confidence value for demonstration
     state.confidence = 0.5 + rand::random::<f32>() * 0.3;
     
@@ -137,8 +143,13 @@ pub extern "C" fn Java_com_predictiverolls_PredictiveRollsNative_placeBet(
     
     state.total_bets += 1;
     
-    // Simulate bet result (for demonstration)
-    // In a real implementation, this would communicate with the gambling site API
+    // TODO: Integrate with actual gambling site APIs from the main crate
+    // Real implementation should:
+    // 1. Use the configured site (DuckDice, CryptoGames, FreeBitco.in)
+    // 2. Make authenticated API call with the prediction
+    // 3. Handle the response and update balance from API
+    // 4. Apply the configured strategy (AiFight, BlaksRunner, etc.)
+    // For now, simulate bet result for demonstration
     let won = rand::random::<f32>() < confidence;
     
     if won {

@@ -21,7 +21,7 @@
     <string name="strategy_my_strategy">My Strategy</string>
     <string name="currency_label">Currency:</string>
     <string name="disclaimer_title">Warning</string>
-    <string name="disclaimer_message">This application is for educational purposes only. Gambling involves significant risk. Never gamble with money you cannot afford to lose.</string>
+    <string name="disclaimer_message">This application is for educational purposes only. Gambling involves financial risk. Never gamble with money you cannot afford to lose.</string>
     <string name="accept">Accept</string>
     <string name="decline">Decline</string>
 </resources>

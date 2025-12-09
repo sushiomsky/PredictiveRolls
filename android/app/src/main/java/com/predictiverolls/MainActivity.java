@@ -196,9 +196,11 @@ public class MainActivity extends AppCompatActivity {
         
         // Auto-scroll to bottom
         logTextView.post(() -> {
-            int scrollAmount = logTextView.getLayout().getLineTop(logTextView.getLineCount()) - logTextView.getHeight();
-            if (scrollAmount > 0) {
-                logTextView.scrollTo(0, scrollAmount);
+            if (logTextView.getLayout() != null) {
+                int scrollAmount = logTextView.getLayout().getLineTop(logTextView.getLineCount()) - logTextView.getHeight();
+                if (scrollAmount > 0) {
+                    logTextView.scrollTo(0, scrollAmount);
+                }
             }
         });
     }
