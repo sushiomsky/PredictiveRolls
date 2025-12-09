@@ -37,19 +37,6 @@ struct Game<B: Backend> {
 }
 
 impl<B: Backend> Game<B> {
-    /// Converts a hexadecimal string to a vector of binary values as FloatElem
-    fn hex_string_to_binary_vec(hex_str: &str) -> Vec<B::FloatElem> {
-        hex_str
-            .chars()
-            .flat_map(|chr| {
-                let value = chr.to_digit(16).unwrap_or(0);
-                (0..4)
-                    .rev()
-                    .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-            })
-            .collect()
-    }
-
     async fn bet(&mut self) -> Result<(), BetError> {
         if !self.initialized {
             B::seed(42);
@@ -78,13 +65,15 @@ impl<B: Backend> Game<B> {
             let inputs_hash = history
                 .iter()
                 .flat_map(|itm| {
-                    let mut vals = Self::hex_string_to_binary_vec(&itm.hash_next_roll);
+                    let mut vals = util::hex_string_to_binary_vec::<B>(&itm.hash_next_roll);
                     vals.resize(256, 0f32.elem::<B::FloatElem>());
 
-                    vals.append(&mut Self::hex_string_to_binary_vec(&itm.hash_previous_roll));
+                    vals.append(&mut util::hex_string_to_binary_vec::<B>(
+                        &itm.hash_previous_roll,
+                    ));
                     vals.resize(512, 0f32.elem::<B::FloatElem>());
 
-                    vals.append(&mut Self::hex_string_to_binary_vec(&itm.client_seed));
+                    vals.append(&mut util::hex_string_to_binary_vec::<B>(&itm.client_seed));
                     vals.resize(768, 0f32.elem::<B::FloatElem>());
 
                     vals.append(

@@ -27,47 +27,18 @@ impl<B: Backend> Batcher<B, BetResultCsvRecord, BetBatch<B>> for BetBatcher<B> {
         let inputs_hash = inputs_data
             .iter()
             .flat_map(|itm| {
-                let mut vals = itm
-                    .server_seed_hash_next_roll
-                    .chars()
-                    .flat_map(|chr| {
-                        let value = chr.to_digit(16).unwrap_or(0);
-                        (0..4)
-                            .rev()
-                            .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-                    })
-                    .collect::<Vec<B::FloatElem>>();
-
+                let mut vals =
+                    crate::util::hex_string_to_binary_vec::<B>(&itm.server_seed_hash_next_roll);
                 vals.resize(256, 0f32.elem::<B::FloatElem>());
 
-                vals.append(
-                    &mut itm
-                        .server_seed_hash_previous_roll
-                        .chars()
-                        .flat_map(|chr| {
-                            let value = chr.to_digit(16).unwrap_or(0);
-                            (0..4)
-                                .rev()
-                                .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-                        })
-                        .collect::<Vec<B::FloatElem>>(),
-                );
-
+                vals.append(&mut crate::util::hex_string_to_binary_vec::<B>(
+                    &itm.server_seed_hash_previous_roll,
+                ));
                 vals.resize(512, 0f32.elem::<B::FloatElem>());
 
-                vals.append(
-                    &mut itm
-                        .client_seed
-                        .chars()
-                        .flat_map(|chr| {
-                            let value = chr.to_digit(16).unwrap_or(0);
-                            (0..4)
-                                .rev()
-                                .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-                        })
-                        .collect::<Vec<B::FloatElem>>(),
-                );
-
+                vals.append(&mut crate::util::hex_string_to_binary_vec::<B>(
+                    &itm.client_seed,
+                ));
                 vals.resize(768, 0f32.elem::<B::FloatElem>());
 
                 vals.append(
