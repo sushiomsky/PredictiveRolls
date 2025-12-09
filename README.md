@@ -2,6 +2,8 @@
 
 A machine learning-based predictive dice rolling application using neural networks to analyze patterns in provably fair gambling sites.
 
+**Available for Desktop (Linux/Windows/macOS) and Android!**
+
 ## ⚠️ Disclaimer
 
 This software is for educational and research purposes only. Gambling involves risk, and you should never gamble with money you cannot afford to lose. The developers are not responsible for any financial losses incurred while using this software.
@@ -13,6 +15,7 @@ This software is for educational and research purposes only. Gambling involves r
 - 📊 Multiple betting strategies
 - 🔒 Secure API key management
 - 🎯 Configurable betting parameters
+- 📱 **Android app** with native performance via JNI
 
 ## Supported Sites
 
@@ -22,11 +25,20 @@ This software is for educational and research purposes only. Gambling involves r
 
 ## Prerequisites
 
+### Desktop Version
 - Rust 1.70 or later
 - Cargo
 - GPU with Vulkan support (for neural network inference)
 
+### Android Version
+- Android Studio and Android SDK
+- Android NDK (r25 or later)
+- Rust toolchain with Android targets
+- See [android/README.md](android/README.md) for detailed setup
+
 ## Installation
+
+### Desktop Installation
 
 1. Clone the repository:
 ```bash
@@ -37,6 +49,17 @@ cd PredictiveRolls
 2. Build the project:
 ```bash
 cargo build --release
+```
+
+### Android Installation
+
+See the complete Android build instructions in [android/README.md](android/README.md).
+
+Quick start:
+```bash
+cd android
+./build.sh
+./gradlew assembleDebug
 ```
 
 ## Configuration
