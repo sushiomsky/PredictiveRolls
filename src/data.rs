@@ -61,7 +61,12 @@ impl<B: Backend> Batcher<B, BetResultCsvRecord, BetBatch<B>> for BetBatcher<B> {
 
         let hash_data = TensorData::new(
             inputs_hash,
-            [items.len() / history_size, history_size, 4, 256],
+            [
+                items.len() / history_size,
+                history_size,
+                4,
+                crate::util::HASH_NEXT_ROLL_SIZE,
+            ],
         );
         let hash_data: Tensor<B, 4> =
             Tensor::from(hash_data.convert::<B::FloatElem>()).to_device(&self.device);

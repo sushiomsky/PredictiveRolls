@@ -89,7 +89,12 @@ impl<B: Backend> Game<B> {
 
             let hash_data = TensorData::new(
                 inputs_hash,
-                [history.len() / history_size, history_size, 4, 256],
+                [
+                    history.len() / history_size,
+                    history_size,
+                    4,
+                    util::HASH_NEXT_ROLL_SIZE,
+                ],
             );
             let hash_data: Tensor<B, 4> =
                 Tensor::from(hash_data.convert::<B::FloatElem>()).to_device(&self.device);
