@@ -37,6 +37,19 @@ struct Game<B: Backend> {
 }
 
 impl<B: Backend> Game<B> {
+    /// Converts a hexadecimal string to a vector of binary values as FloatElem
+    fn hex_string_to_binary_vec(hex_str: &str) -> Vec<B::FloatElem> {
+        hex_str
+            .chars()
+            .flat_map(|chr| {
+                let value = chr.to_digit(16).unwrap_or(0);
+                (0..4)
+                    .rev()
+                    .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
+            })
+            .collect()
+    }
+
     async fn bet(&mut self) -> Result<(), BetError> {
         if !self.initialized {
             B::seed(42);
@@ -65,47 +78,13 @@ impl<B: Backend> Game<B> {
             let inputs_hash = history
                 .iter()
                 .flat_map(|itm| {
-                    let mut vals = itm
-                        .hash_next_roll
-                        .chars()
-                        .flat_map(|chr| {
-                            let value = chr.to_digit(16).unwrap_or(0);
-                            (0..4)
-                                .rev()
-                                .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-                        })
-                        .collect::<Vec<B::FloatElem>>();
-
+                    let mut vals = Self::hex_string_to_binary_vec(&itm.hash_next_roll);
                     vals.resize(256, 0f32.elem::<B::FloatElem>());
 
-                    vals.append(
-                        &mut itm
-                            .hash_previous_roll
-                            .chars()
-                            .flat_map(|chr| {
-                                let value = chr.to_digit(16).unwrap_or(0);
-                                (0..4)
-                                    .rev()
-                                    .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-                            })
-                            .collect::<Vec<B::FloatElem>>(),
-                    );
-
+                    vals.append(&mut Self::hex_string_to_binary_vec(&itm.hash_previous_roll));
                     vals.resize(512, 0f32.elem::<B::FloatElem>());
 
-                    vals.append(
-                        &mut itm
-                            .client_seed
-                            .chars()
-                            .flat_map(|chr| {
-                                let value = chr.to_digit(16).unwrap_or(0);
-                                (0..4)
-                                    .rev()
-                                    .map(move |i| ((value >> i) & 1).elem::<B::FloatElem>())
-                            })
-                            .collect::<Vec<B::FloatElem>>(),
-                    );
-
+                    vals.append(&mut Self::hex_string_to_binary_vec(&itm.client_seed));
                     vals.resize(768, 0f32.elem::<B::FloatElem>());
 
                     vals.append(
@@ -113,7 +92,6 @@ impl<B: Backend> Game<B> {
                             .map(|i| ((itm.nonce >> i) & 1).elem::<B::FloatElem>())
                             .collect::<Vec<B::FloatElem>>(),
                     );
-
                     vals.resize(1024, 0f32.elem::<B::FloatElem>());
 
                     vals
@@ -215,12 +193,15 @@ async fn main() -> Result<(), BetError> {
 
     info!("Configuration validated successfully");
 
-    let _site = if game_config.duck_dice.enabled {
+    // Initialize the configured site
+    let site: Box<dyn Site> = if game_config.duck_dice.enabled {
         info!("Using DuckDice site");
-        DuckDiceIo::default()
-            .with_api_key(game_config.duck_dice.api_key.clone())
-            .with_currency(game_config.duck_dice.currency.clone())
-            .with_strategy(game_config.duck_dice.strategy)
+        Box::new(
+            DuckDiceIo::default()
+                .with_api_key(game_config.duck_dice.api_key.clone())
+                .with_currency(game_config.duck_dice.currency.clone())
+                .with_strategy(game_config.duck_dice.strategy),
+        )
     } else {
         warn!("No site enabled in configuration");
         return Err(BetError::Failed);
@@ -232,8 +213,7 @@ async fn main() -> Result<(), BetError> {
     let device = WgpuDevice::default();
 
     // Get model artifact directory from environment or use default
-    let artifact_dir = std::env::var("MODEL_DIR")
-        .unwrap_or_else(|_| "/home/jvne/Projects/rust/random_guesser/experimental".to_string());
+    let artifact_dir = std::env::var("MODEL_DIR").unwrap_or_else(|_| "./artifacts".to_string());
     info!("Loading model from: {}", artifact_dir);
 
     let _config = TrainingConfig::load(format!("{artifact_dir}/config.json")).map_err(|e| {
@@ -253,7 +233,7 @@ async fn main() -> Result<(), BetError> {
 
     let mut game = Game::<MyBackend> {
         confidence: 0.,
-        site: Box::new(DuckDiceIo::default()),
+        site,
         model,
         device,
         prediction: 0.,
