@@ -3,10 +3,6 @@ name: Android CI/CD
 on:
   push:
     branches: [ main, develop ]
-    paths:
-      - 'android/**'
-      - 'android-lib/**'
-      - '.github/workflows/android.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
