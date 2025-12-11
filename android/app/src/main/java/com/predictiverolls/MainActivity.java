@@ -6,13 +6,17 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.widget.Button;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKeys;
+
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -26,11 +30,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView confidenceValue;
     private TextView balanceValue;
     private TextView winRateValue;
+    private TextView totalBetsValue;
     private TextView logTextView;
-    private Button settingsButton;
-    private Button startStopButton;
+    private MaterialButton settingsButton;
+    private MaterialButton startStopButton;
+    private MaterialToolbar toolbar;
     
     private boolean isRunning = false;
+    private int totalBets = 0;
     private ExecutorService executorService;
     private Handler mainHandler;
     private SharedPreferences prefs;
@@ -44,11 +51,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
+        // Set up toolbar
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        
         // Initialize views
         predictionValue = findViewById(R.id.predictionValue);
         confidenceValue = findViewById(R.id.confidenceValue);
         balanceValue = findViewById(R.id.balanceValue);
         winRateValue = findViewById(R.id.winRateValue);
+        totalBetsValue = findViewById(R.id.totalBetsValue);
         logTextView = findViewById(R.id.logTextView);
         settingsButton = findViewById(R.id.settingsButton);
         startStopButton = findViewById(R.id.startStopButton);
@@ -94,7 +106,41 @@ public class MainActivity extends AppCompatActivity {
         
         // Initialize native library
         PredictiveRollsNative.initialize();
-        appendLog("PredictiveRolls initialized");
+        appendLog("✓ PredictiveRolls initialized");
+        appendLog("  Configure settings to get started");
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        
+        if (id == R.id.action_settings) {
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.action_about) {
+            showAboutDialog();
+            return true;
+        }
+        
+        return super.onOptionsItemSelected(item);
+    }
+    
+    private void showAboutDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("About PredictiveRolls")
+            .setMessage("PredictiveRolls Android\nVersion 1.0\n\n" +
+                "A machine learning-based predictive dice rolling application.\n\n" +
+                "⚠️ For educational and research purposes only.\n" +
+                "Gambling involves risk. Never gamble with money you cannot afford to lose.")
+            .setPositiveButton("OK", null)
+            .show();
     }
     
     private void showDisclaimer() {
@@ -118,18 +164,20 @@ public class MainActivity extends AppCompatActivity {
         String strategy = prefs.getString("strategy", "None");
         
         if (apiKey.isEmpty()) {
-            Toast.makeText(this, "Please configure API key in settings", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "⚠️ Please configure API key in settings", Toast.LENGTH_LONG).show();
             return;
         }
         
         isRunning = true;
         startStopButton.setText(R.string.stop_betting);
+        startStopButton.setIcon(getDrawable(android.R.drawable.ic_media_pause));
         startStopButton.setEnabled(false);
+        settingsButton.setEnabled(false);
         
-        appendLog("Starting betting session...");
-        appendLog("Site: " + site);
-        appendLog("Currency: " + currency);
-        appendLog("Strategy: " + strategy);
+        appendLog("▶ Starting betting session...");
+        appendLog("  Site: " + site);
+        appendLog("  Currency: " + currency);
+        appendLog("  Strategy: " + strategy);
         
         executorService.execute(() -> {
             try {
@@ -138,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                 
                 mainHandler.post(() -> {
                     startStopButton.setEnabled(true);
-                    appendLog("Betting session started");
+                    appendLog("✓ Betting session started");
                 });
                 
                 // Start betting loop
@@ -147,9 +195,12 @@ public class MainActivity extends AppCompatActivity {
                         float prediction = PredictiveRollsNative.getPrediction();
                         float confidence = PredictiveRollsNative.getConfidence();
                         
+                        totalBets++;
+                        
                         mainHandler.post(() -> {
                             predictionValue.setText(String.format("%.2f", prediction));
-                            confidenceValue.setText(String.format("%.2f%%", confidence * 100));
+                            confidenceValue.setText(String.format("%.1f%%", confidence * 100));
+                            totalBetsValue.setText(String.valueOf(totalBets));
                         });
                         
                         boolean betResult = PredictiveRollsNative.placeBet(prediction, confidence);
@@ -157,13 +208,15 @@ public class MainActivity extends AppCompatActivity {
                         String balance = PredictiveRollsNative.getBalance();
                         float winRate = PredictiveRollsNative.getWinRate();
                         
+                        final String result = betResult ? "WIN ✓" : "LOSS ✗";
+                        final String emoji = betResult ? "🎉" : "📉";
+                        
                         mainHandler.post(() -> {
                             balanceValue.setText(balance + " " + currency);
-                            winRateValue.setText(String.format("%.2f%%", winRate * 100));
+                            winRateValue.setText(String.format("%.1f%%", winRate * 100));
                             
-                            String result = betResult ? "WIN" : "LOSS";
-                            appendLog(String.format("Bet: %.2f | Confidence: %.2f%% | Result: %s", 
-                                prediction, confidence * 100, result));
+                            appendLog(String.format("%s Bet #%d | Pred: %.2f | Conf: %.1f%% | %s", 
+                                emoji, totalBets, prediction, confidence * 100, result));
                         });
                         
                         Thread.sleep(5000); // Wait between bets
@@ -175,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
                 
             } catch (Exception e) {
                 mainHandler.post(() -> {
-                    appendLog("Error: " + e.getMessage());
+                    appendLog("❌ Error: " + e.getMessage());
                     Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     stopBetting();
                 });
@@ -186,7 +239,10 @@ public class MainActivity extends AppCompatActivity {
     private void stopBetting() {
         isRunning = false;
         startStopButton.setText(R.string.start_betting);
-        appendLog("Betting session stopped");
+        startStopButton.setIcon(getDrawable(android.R.drawable.ic_media_play));
+        settingsButton.setEnabled(true);
+        appendLog("■ Betting session stopped");
+        appendLog("  Total bets placed: " + totalBets);
     }
     
     private void appendLog(String message) {
